@@ -1,5 +1,10 @@
 <script lang="ts">
+	// TODO: after mouseleave tooltip, it shouldn't appear
+	// tried hidden, invisible but they don't work with opacity transition
+
 	import classNames from 'classnames';
+	import { clickOutside } from '$lib/utils/clickOutside';
+
 	import {
 		computePosition,
 		flip,
@@ -20,6 +25,7 @@
 	export let popOverClass: string =
 		'absolute inline-block z-10 text-gray-500 bg-white rounded-lg border border-gray-200 shadow-sm dark:text-gray-400 dark:border-gray-600 dark:bg-gray-800';
 	export let tipColor: string = '';
+	// let invisible = false;
 
 	const tipStyleClasses = {
 		dark: 'bg-gray-900 text-white dark:bg-gray-700',
@@ -40,7 +46,8 @@
 		popOverClass,
 		animation !== false && `transition-opacity ${animation}`,
 		// animation !== false && open && `transition-opacity ${animation} opacity-100`,
-		!open && ` transition-opacity ${animation} opacity-0`,
+		!open && 'opacity-0',
+		// invisible && 'invisible',
 		tipStyleClasses[style],
 		$$props.class
 	);
@@ -106,35 +113,49 @@
 </script>
 
 <svelte:window on:resize={() => open && updatePosition()} />
+
 <div
-	on:mouseenter={() => {
-		if (trigger === 'hover') {
-			open = true;
+	use:clickOutside={() => {
+		if (open) {
+			open = false;
+			// invisible = false;
 		}
 	}}
 	on:mouseleave={() => {
 		if (open && trigger === 'hover') {
 			open = false;
+			// invisible = true;
 		}
 	}}
-	on:click={() => {
-		if (trigger === 'click') {
-			open = !open;
+	on:mouseenter={() => {
+		if (trigger === 'hover') {
+			open = true;
+			// invisible = false;
 		}
 	}}
 >
-	<div class="w-fit" bind:this={triggerRef}>
+	<div
+		bind:this={triggerRef}
+		class="w-fit"
+		on:click={() => {
+			if (trigger === 'click') {
+				open = !open;
+			}
+		}}
+	>
 		<slot />
 	</div>
+
 	<div
 		bind:this={tooltipRef}
-		data-testid="popover"
+		data-testid="tooltip"
 		class={toolTipClass}
 		style:left={px(placementData?.x)}
 		style:top={px(placementData?.y)}
 		style:position={placementData?.strategy ?? ''}
 	>
 		<slot name="content" />
+
 		{#if arrow}
 			<div
 				class={classNames('absolute z-10 h-2 w-2 rotate-45', arrowStyleClasses[style])}
