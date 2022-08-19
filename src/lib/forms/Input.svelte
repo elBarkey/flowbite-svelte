@@ -40,6 +40,7 @@
 	on:mouseenter
 	on:mouseleave
 	on:paste
+       	on:input
 	use:setType
 	class={classNames(
 		inputClass,
